@@ -1,0 +1,234 @@
+2025-05-23 11:44:34,070 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 10.0.0.0/24
+2025-05-23 11:44:34,166 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-23 11:44:39,786 - miproyectored.gui.app_gui - INFO - Iniciando escaneo Nmap para: 10.0.0.0/24
+2025-05-23 11:49:07,161 - miproyectored.gui.app_gui - ERROR - Error durante el escaneo Nmap: 'NoneType' object is not iterable
+Traceback (most recent call last):
+  File "C:\Users\Administrador\Desktop\ScannerLaberit\miproyectored\gui\app_gui.py", line 346, in _perform_nmap_scan_thread
+    self._count_device_types() # Contar tipos para escaneos detallados
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Administrador\Desktop\ScannerLaberit\miproyectored\gui\app_gui.py", line 653, in _count_device_types
+    for device in self.scan_results:
+                  ^^^^^^^^^^^^^^^^^
+TypeError: 'NoneType' object is not iterable
+2025-05-23 11:51:43,735 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-23 11:52:51,396 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 10.0.0.0/24
+2025-05-23 11:52:51,486 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-23 11:52:54,762 - miproyectored.gui.app_gui - INFO - Iniciando escaneo Nmap para: 10.0.0.0/24
+2025-05-23 11:57:20,721 - miproyectored.gui.app_gui - INFO - Escaneo Nmap completado. Encontrados 0 dispositivos.
+2025-05-23 11:57:20,724 - miproyectored.gui.app_gui - INFO - No hay resultados de escaneo para guardar en la base de datos.
+2025-05-23 11:58:37,567 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-23 11:58:41,381 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-23 11:58:46,184 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-23 12:19:03,612 - miproyectored.gui.app_gui - ERROR - Error al inicializar la interfaz gráfica: maximum recursion depth exceeded
+Traceback (most recent call last):
+  File "C:\Users\Administrador\Desktop\ScannerLaberit\miproyectored\gui\app_gui.py", line 68, in __init__
+    self.nmap_scanner = NmapScanner() # Usar NmapScanner del proyecto
+                        ~~~~~~~~~~~^^
+  File "C:\Users\Administrador\Desktop\ScannerLaberit\miproyectored\scanner\nmap_scanner.py", line 17, in __init__
+    nmap_scanner = NmapScanner(nmap_path="C:\\Program Files\\Nmap\\nmap.exe")
+  File "C:\Users\Administrador\Desktop\ScannerLaberit\miproyectored\scanner\nmap_scanner.py", line 17, in __init__
+    nmap_scanner = NmapScanner(nmap_path="C:\\Program Files\\Nmap\\nmap.exe")
+  File "C:\Users\Administrador\Desktop\ScannerLaberit\miproyectored\scanner\nmap_scanner.py", line 17, in __init__
+    nmap_scanner = NmapScanner(nmap_path="C:\\Program Files\\Nmap\\nmap.exe")
+  [Previous line repeated 992 more times]
+RecursionError: maximum recursion depth exceeded
+2025-05-23 12:25:34,506 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 10.0.0.0/24
+2025-05-23 12:25:34,711 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-23 12:25:38,951 - miproyectored.gui.app_gui - INFO - Iniciando escaneo Nmap para: 10.0.0.0/24
+2025-05-23 12:30:06,314 - miproyectored.gui.app_gui - INFO - Escaneo Nmap completado. Encontrados 0 dispositivos.
+2025-05-23 12:30:06,319 - miproyectored.gui.app_gui - INFO - No hay resultados de escaneo para guardar en la base de datos.
+2025-05-23 12:31:51,507 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-23 12:31:58,169 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 10.0.0.0/24
+2025-05-23 12:31:58,304 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-23 12:31:59,736 - miproyectored.gui.app_gui - INFO - Iniciando escaneo Nmap para: 10.0.0.0/24
+2025-05-23 12:36:27,796 - miproyectored.gui.app_gui - ERROR - Error durante el escaneo Nmap: 'Device' object has no attribute 'get_os'
+Traceback (most recent call last):
+  File "C:\Users\Administrador\Desktop\ScannerLaberit\miproyectored\gui\app_gui.py", line 346, in _perform_nmap_scan_thread
+    self._count_device_types() # Contar tipos para escaneos detallados
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Administrador\Desktop\ScannerLaberit\miproyectored\gui\app_gui.py", line 654, in _count_device_types
+    os_lower = device.get_os().lower() if device.get_os() else ""
+                                          ^^^^^^^^^^^^^
+AttributeError: 'Device' object has no attribute 'get_os'
+2025-05-23 12:37:37,939 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-27 08:18:16,061 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 08:18:16,156 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 08:19:42,558 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-27 08:19:49,190 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 08:19:49,239 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 08:20:20,091 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-27 08:26:11,867 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 08:26:11,998 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 08:26:27,335 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-27 08:56:10,768 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 08:56:10,909 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 08:56:17,831 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-27 08:57:43,674 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 08:57:43,718 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 08:58:35,039 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-27 09:00:44,806 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 09:00:44,850 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 09:00:55,897 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-27 09:06:29,408 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 09:06:29,454 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 09:06:38,766 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-27 09:10:28,268 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 09:10:28,270 - miproyectored.gui.app_gui - ERROR - Error al inicializar la interfaz gráfica: unknown option "-minsize"
+Traceback (most recent call last):
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 108, in __init__
+    self._create_widgets()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 168, in _create_widgets
+    main_pane.add(left_frame_container, weight=1, minsize=300)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\lmarten\AppData\Local\Programs\Python\Python313\Lib\tkinter\__init__.py", line 4791, in add
+    self.tk.call((self._w, 'add', child) + self._options(kw))
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_tkinter.TclError: unknown option "-minsize"
+2025-05-27 09:10:53,516 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 09:10:53,518 - miproyectored.gui.app_gui - ERROR - Error al inicializar la interfaz gráfica: unknown option "-minsize"
+Traceback (most recent call last):
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 108, in __init__
+    self._create_widgets()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 168, in _create_widgets
+    main_pane.add(left_frame_container, weight=1, minsize=200)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\lmarten\AppData\Local\Programs\Python\Python313\Lib\tkinter\__init__.py", line 4791, in add
+    self.tk.call((self._w, 'add', child) + self._options(kw))
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_tkinter.TclError: unknown option "-minsize"
+2025-05-27 09:20:37,169 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 09:20:37,399 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 09:28:51,419 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-27 09:31:58,711 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-27 09:31:58,824 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 09:32:29,279 - miproyectored.gui.app_gui - INFO - Iniciando escaneo Nmap para: 192.168.2.0/24
+2025-05-27 09:34:02,556 - miproyectored.gui.app_gui - ERROR - Error durante el escaneo Nmap: 'Device' object has no attribute 'get_open_ports'
+Traceback (most recent call last):
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 346, in _perform_nmap_scan_thread
+    self._count_device_types() # Contar tipos para escaneos detallados
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 384, in _count_device_types
+    if 161 in device.get_open_ports().get('udp', {}):
+              ^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Device' object has no attribute 'get_open_ports'. Did you mean: 'open_ports'?
+2025-05-27 09:43:19,729 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-27 09:43:19,813 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 09:43:21,677 - miproyectored.gui.app_gui - INFO - Iniciando escaneo Nmap para: 192.168.2.0/24
+2025-05-27 09:44:52,911 - miproyectored.gui.app_gui - ERROR - Error durante el escaneo Nmap: 'list' object has no attribute 'get'
+Traceback (most recent call last):
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 346, in _perform_nmap_scan_thread
+    self._count_device_types() # Contar tipos para escaneos detallados
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 384, in _count_device_types
+    if 161 in device.get_open_ports().get('udp', {}):
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'list' object has no attribute 'get'
+2025-05-27 09:47:31,948 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-27 10:46:41,190 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 10:46:41,308 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 10:51:54,020 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 10:51:54,099 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 11:11:06,559 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-27 11:11:06,651 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 11:11:17,398 - miproyectored.gui.app_gui - INFO - Iniciando escaneo Nmap para: 192.168.2.0/24
+2025-05-27 11:12:56,767 - miproyectored.gui.app_gui - ERROR - Error durante el escaneo Nmap: 'list' object has no attribute 'get'
+Traceback (most recent call last):
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 346, in _perform_nmap_scan_thread
+    self._count_device_types() # Contar tipos para escaneos detallados
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 384, in _count_device_types
+    if 161 in device.get_open_ports().get('udp', {}):
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'list' object has no attribute 'get'
+2025-05-27 11:17:41,468 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 11:17:41,540 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 11:17:45,528 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-27 11:28:02,959 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-27 11:28:03,119 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 11:28:06,902 - miproyectored.gui.app_gui - INFO - Iniciando escaneo Nmap para: 192.168.2.0/24
+2025-05-27 11:29:40,141 - miproyectored.gui.app_gui - ERROR - Error durante el escaneo Nmap: 'list' object has no attribute 'get'
+Traceback (most recent call last):
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 346, in _perform_nmap_scan_thread
+    self._count_device_types() # Contar tipos para escaneos detallados
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 384, in _count_device_types
+    if 161 in device.get_open_ports().get('udp', {}):
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'list' object has no attribute 'get'
+2025-05-27 12:12:34,085 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-27 12:17:18,121 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 12:17:18,254 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 12:19:40,947 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-27 12:24:53,094 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 12:24:53,172 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 12:26:30,514 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-27 12:26:30,863 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 12:26:37,923 - miproyectored.gui.app_gui - INFO - Iniciando escaneo Nmap para: 192.168.2.0/24
+2025-05-27 12:28:13,209 - miproyectored.gui.app_gui - ERROR - Error durante el escaneo Nmap: 'list' object has no attribute 'get'
+Traceback (most recent call last):
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 346, in _perform_nmap_scan_thread
+    self._count_device_types() # Contar tipos para escaneos detallados
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 384, in _count_device_types
+    if 161 in device.get_open_ports().get('udp', {}):
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'list' object has no attribute 'get'
+2025-05-27 12:33:46,398 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 12:33:46,510 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 12:33:52,595 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-27 12:34:17,983 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-27 12:34:18,046 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 12:34:22,519 - miproyectored.gui.app_gui - INFO - Iniciando escaneo Nmap para: 192.168.2.0/24
+2025-05-27 12:35:56,512 - miproyectored.gui.app_gui - INFO - Escaneo Nmap completado. Encontrados 3 dispositivos.
+2025-05-27 12:39:21,388 - miproyectored.gui.app_gui - INFO - Guardando 3 dispositivos en la base de datos.
+2025-05-27 12:39:21,390 - miproyectored.gui.app_gui - ERROR - Error inesperado al guardar en la base de datos: 'InventoryManager' object has no attribute 'add_or_update_device'
+Traceback (most recent call last):
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 716, in _save_scan_to_db
+    self.db.add_or_update_device(device) # Este método debe manejar toda la lógica de inserción/actualización
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'InventoryManager' object has no attribute 'add_or_update_device'
+2025-05-27 12:46:32,615 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 12:46:32,774 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 12:46:45,989 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-27 12:47:12,879 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-27 12:47:12,953 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 12:47:16,406 - miproyectored.gui.app_gui - INFO - Iniciando escaneo Nmap para: 192.168.2.0/24
+2025-05-27 12:48:51,521 - miproyectored.gui.app_gui - INFO - Escaneo Nmap completado. Encontrados 3 dispositivos.
+2025-05-27 12:49:08,050 - miproyectored.gui.app_gui - INFO - Guardando 3 dispositivos en la base de datos.
+2025-05-27 12:49:08,052 - miproyectored.gui.app_gui - INFO - Resultados del escaneo guardados en la base de datos.
+2025-05-27 12:55:36,294 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 12:55:36,359 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 12:55:43,501 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-27 12:55:59,551 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-27 12:55:59,617 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 12:56:01,646 - miproyectored.gui.app_gui - ERROR - Error durante el escaneo Nmap: NmapScanner.scan() takes 2 positional arguments but 3 were given
+Traceback (most recent call last):
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 361, in _perform_nmap_scan_thread
+    devices = self.nmap_scanner.scan(target, on_device_found)
+TypeError: NmapScanner.scan() takes 2 positional arguments but 3 were given
+2025-05-27 12:56:10,356 - miproyectored.gui.app_gui - ERROR - Error durante el escaneo Nmap: NmapScanner.scan() takes 2 positional arguments but 3 were given
+Traceback (most recent call last):
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 361, in _perform_nmap_scan_thread
+    devices = self.nmap_scanner.scan(target, on_device_found)
+TypeError: NmapScanner.scan() takes 2 positional arguments but 3 were given
+2025-05-27 12:57:59,252 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-27 12:57:59,336 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 13:05:55,138 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-27 13:05:55,202 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 13:15:40,310 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-27 13:15:44,324 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-27 13:15:44,376 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 13:20:57,627 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-27 13:20:57,677 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 13:33:08,903 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-27 13:33:08,985 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 13:35:12,611 - miproyectored.gui.app_gui - INFO - Escaneo Nmap completado. Encontrados 4 dispositivos.
+2025-05-27 13:35:12,647 - miproyectored.gui.app_gui - INFO - Guardando 4 dispositivos en la base de datos.
+2025-05-27 13:35:12,648 - miproyectored.gui.app_gui - ERROR - Error inesperado al guardar en la base de datos: NetworkReport.__init__() got an unexpected keyword argument 'target'
+2025-05-27 13:41:01,884 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-27 13:41:01,931 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 13:52:37,281 - miproyectored.gui.app_gui - INFO - Escaneo Nmap completado. Encontrados 4 dispositivos.
+2025-05-27 13:52:37,304 - miproyectored.gui.app_gui - INFO - Guardando 4 dispositivos en la base de datos.
+2025-05-27 13:52:37,304 - miproyectored.gui.app_gui - ERROR - Error inesperado al guardar en la base de datos: NetworkReport.__init__() got an unexpected keyword argument 'target'
