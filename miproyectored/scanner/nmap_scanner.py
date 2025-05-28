@@ -3,6 +3,8 @@ import xml.etree.ElementTree as ET
 import platform
 import os
 import time
+import json
+from typing import List, Optional
 
 from ..model.device import Device
 from ..util.data_normalizer import DataNormalizer
@@ -63,136 +65,379 @@ class NmapScanner:
             # print(f"Error verifying Nmap at '{command_or_path}': {e}")
             return False
 
+    def quick_scan(self, target: str) -> List[str]:
+        """Realiza un escaneo rápido para encontrar hosts activos."""
+        try:
+            # -sn: Ping Scan - disable port scan
+            # -n: No DNS resolution
+            # --max-parallelism: Máximo número de escaneos paralelos
+            command = [
+                self.nmap_path,
+                "-sn",  # Solo ping scan
+                "-n",   # No DNS resolution
+                "--max-parallelism", "256",  # Máximo paralelismo
+                "-T4",  # Timing template (higher is faster)
+                target
+            ]
+            
+            result = subprocess.run(command, capture_output=True, text=True)
+            
+            # Extraer IPs de la salida usando expresiones regulares
+            import re
+            ip_pattern = re.compile(r'Nmap scan report for (\d+\.\d+\.\d+\.\d+)')
+            active_ips = ip_pattern.findall(result.stdout)
+            
+            return active_ips
+            
+        except Exception as e:
+            print(f"Error en quick_scan: {e}")
+            return []
+
+    def detailed_scan(self, ip: str) -> Optional[Device]:
+        """Realiza un escaneo detallado de un host específico."""
+        try:
+            # Escaneo más detallado para un solo host
+            command = [
+                self.nmap_path,
+                "-sS",     # SYN scan
+                "-sV",     # Version detection
+                "-O",      # OS detection
+                "-p-",     # Todos los puertos
+                "--version-intensity", "5",  # Detección de versión más agresiva
+                "-A",      # Habilitar detección de OS y versiones
+                "--max-os-tries", "1",  # Limitar intentos de OS
+                "-T4",     # Aggressive timing
+                "--host-timeout", "60s",  # Timeout por host aumentado
+                "-oX", "-",  # Output XML to stdout
+                ip
+            ]
+            
+            print(f"Escaneando {ip} con comando: {' '.join(command)}")  # Debug
+            result = subprocess.run(command, capture_output=True, text=True)
+            
+            if result.returncode != 0:
+                print(f"Error en el escaneo de {ip}: {result.stderr}")  # Debug
+                return None
+                
+            # Parsear XML y crear Device
+            try:
+                root = ET.fromstring(result.stdout)
+            except ET.ParseError as e:
+                print(f"Error parseando XML para {ip}: {e}")  # Debug
+                print(f"XML recibido: {result.stdout[:200]}...")  # Debug
+                return None
+                
+            # Buscar el host en el XML
+            host = root.find('.//host')
+            if host is not None and host.find(".//status[@state='up']") is not None:
+                return self._parse_host(host)
+            else:
+                print(f"No se encontró información del host para {ip}")  # Debug
+                return None
+            
+        except Exception as e:
+            print(f"Error en detailed_scan para {ip}: {e}")
+            return None
+
     def scan(self, target, on_device_found=None):
         """Realiza un escaneo de red mostrando progreso en tiempo real."""
         if not self.nmap_path:
-            print("[ERROR] Ruta de Nmap no configurada o Nmap no disponible.")
+            print("Error: No se encontró nmap en el sistema.")
             return []
 
-        # Configurar comando Nmap para descubrimiento rápido de hosts
-        discovery_command = [
+        # Configurar comando Nmap para escaneo rápido inicial
+        fast_scan_command = [
             self.nmap_path,
-            "-sn",                 # No port scan, host discovery only
-            "-n",                  # No DNS resolution
-            "-PS22,80,443",       # TCP SYN discovery on common ports
-            "-PA80,443",          # TCP ACK discovery on common ports
-            "-PE",                # ICMP echo request
-            "--max-retries=1",     # Solo un reintento para descubrimiento
-            "-T4",                # Aggressive timing
-            "--min-rate=300",     # Tasa más alta para escaneo rápido
-            "--host-timeout=3s",   # Timeout corto para hosts que no responden
-            "-oX", "-"            # XML output
+            "-sn",               # No port scan, just host discovery
+            "-PR",              # ARP scan
+            "-PE",              # ICMP Echo
+            "-PS21,22,23,25,80,443,3389",  # TCP SYN to common ports
+            "-PA80,443",        # TCP ACK to common ports
+            "-n",               # No DNS resolution
+            "-T4",              # Aggressive timing
+            "--min-parallelism=10",  # Parallel host scanning
+            "--max-retries=2",  # Limit retries for faster results
+            "-oX", "-"          # XML output
         ]
 
         try:
-            print(f"\n[INFO] Iniciando escaneo en {target}")
-            print("-" * 50)
+            print("=" * 50)
+            print("[INFO] Iniciando descubrimiento de hosts...")
             
             # Fase 1: Descubrimiento rápido de hosts
-            print("[INFO] Fase 1: Descubrimiento de hosts...")
             process = subprocess.Popen(
-                discovery_command + [target],
+                fast_scan_command + [target],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True
             )
-            
-            xml_output = []
+
             devices = []
             current_xml = ""
-            
-            # Leer la salida línea por línea
-            for line in process.stdout:
-                xml_output.append(line)
-                current_xml += line
-                
-                if "</host>" in line and "<host>" in current_xml:
-                    try:
-                        host_xml = current_xml[current_xml.find("<host>"):current_xml.find("</host>") + 7]
-                        device = self._parse_single_host(host_xml)
-                        if device:
-                            print(f"\n[INFO] Host encontrado: {device.ip_address}")
+            active_ips = set()
+
+            while True:
+                output = process.stdout.read(1)
+                if output == '' and process.poll() is not None:
+                    break
+                if output:
+                    current_xml += output
+                    if "</host>" in current_xml:
+                        try:
+                            host_end = current_xml.find("</host>") + 7
+                            host_xml = current_xml[:host_end]
+                            root = ET.fromstring(host_xml)
                             
-                            # Configurar escaneo detallado para este host
-                            port_scan_command = [
-                                self.nmap_path,
-                                "-sS",         # SYN Scan
-                                "-sV",         # Version detection
-                                "-O",          # OS Detection
-                                "-p-",         # Scan all ports
-                                "-T4",         # Aggressive timing
-                                "-Pn",         # Skip host discovery
-                                "--version-intensity=5",  # Intensidad media de detección de versiones
-                                "-oX", "-",     # XML output
-                                device.ip_address
-                            ]
-                            
-                            print(f"[INFO] Iniciando escaneo detallado de {device.ip_address}")
-                            
-                            try:
-                                # Ejecutar escaneo de puertos sin timeout
-                                port_scan = subprocess.run(
-                                    port_scan_command,
-                                    capture_output=True,
-                                    text=True
-                                )
+                            ip = root.find(".//address[@addrtype='ipv4']")
+                            if ip is not None:
+                                active_ips.add(ip.get('addr'))
                                 
-                                if port_scan.returncode == 0:
-                                    updated_device = self._parse_single_host(port_scan.stdout)
-                                    if updated_device:
-                                        updated_device.ip_address = device.ip_address
-                                        updated_device.last_scan_success = True
-                                        updated_device.last_scan_timestamp = int(time.time())
-                                        # Asignar valores por defecto para risk_score
-                                        updated_device.risk_score = 0.0
-                                        updated_device.risk_level = "Bajo"
-                                        devices.append(updated_device)
-                                        if on_device_found:
-                                            on_device_found(updated_device)
-                                        print(f"[SUCCESS] Escaneo completado para {device.ip_address}")
-                                    else:
-                                        print(f"[WARNING] No se pudo procesar la información de {device.ip_address}")
-                                        device.risk_score = 0.0
-                                        device.risk_level = "Desconocido"
+                        except Exception as e:
+                            print(f"[ERROR] Error en fase 1: {str(e)}")
+                        finally:
+                            current_xml = current_xml[host_end:]
+
+            print(f"[INFO] Encontrados {len(active_ips)} hosts activos")
+
+            # Fase 2: Escaneo detallado de hosts activos
+            detailed_scan_command = [
+                self.nmap_path,
+                "-sS",                # TCP SYN scan (requiere privilegios)
+                "-sV",               # Version detection
+                "-O",                # OS Detection (requiere privilegios)
+                "-n",                # No DNS resolution
+                "-Pn",               # Skip host discovery
+                "-p-",               # All ports
+                "--version-intensity=9", # Maximum version detection
+                "--version-light",   # Lighter version detection for better compatibility
+                "--osscan-limit",    # Limit OS detection to promising targets
+                "--max-os-tries=3",  # More OS detection attempts
+                "-T4",               # Aggressive timing
+                "--min-rate=1000",   # Minimum packet rate
+                "--max-retries=3",   # More retries for better accuracy
+                "--host-timeout=120s", # Longer timeout for thorough scan
+                # Scripts seguros y útiles
+                "--script=default,banner,http-title,ssl-cert,ssh-auth-methods,smb-os-discovery,smb-system-info",
+                "-oX", "-"           # XML output
+            ]
+
+            # Intentar primero con privilegios
+            for ip in active_ips:
+                try:
+                    print(f"\n[INFO] Escaneando detalladamente {ip}...")
+                    detailed_process = subprocess.Popen(
+                        detailed_scan_command + [ip],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True
+                    )
+
+                    current_xml = ""
+                    device_found = False
+
+                    while True:
+                        output = detailed_process.stdout.read(1)
+                        if output == '' and detailed_process.poll() is not None:
+                            break
+                        if output:
+                            current_xml += output
+                            if "</host>" in current_xml:
+                                try:
+                                    host_end = current_xml.find("</host>") + 7
+                                    host_xml = current_xml[:host_end]
+                                    root = ET.fromstring(host_xml)
+                                    device = self._parse_host(root)
+                                    
+                                    if device:
+                                        device_found = True
                                         devices.append(device)
                                         if on_device_found:
                                             on_device_found(device)
-                                else:
-                                    print(f"[ERROR] Falló el escaneo detallado de {device.ip_address}")
-                                    device.last_scan_error = "Error en escaneo de puertos"
-                                    device.risk_score = 0.0
-                                    device.risk_level = "Desconocido"
-                                    devices.append(device)
-                                    if on_device_found:
-                                        on_device_found(device)
+                                except Exception as e:
+                                    print(f"[ERROR] Error procesando {ip}: {str(e)}")
+                                finally:
+                                    current_xml = current_xml[host_end:]
+
+                    detailed_process.wait()
+
+                    # Si el escaneo privilegiado falló, intentar sin privilegios
+                    if not device_found:
+                        print(f"[INFO] Reintentando escaneo de {ip} sin privilegios...")
+                        unprivileged_scan = [
+                            self.nmap_path,
+                            "-sT",               # TCP Connect scan (no requiere privilegios)
+                            "-sV",               # Version detection
+                            "-n",                # No DNS resolution
+                            "-Pn",               # Skip host discovery
+                            "-p-",               # All ports
+                            "--version-light",   # Lighter version detection
+                            "-T4",              # Aggressive timing
+                            "--min-rate=1000",   # Minimum packet rate
+                            "--max-retries=2",   # Fewer retries for speed
+                            "--host-timeout=60s", # Shorter timeout
+                            "--script=banner,http-title,ssl-cert", # Scripts básicos
+                            "-oX", "-"          # XML output
+                        ]
+
+                        detailed_process = subprocess.Popen(
+                            unprivileged_scan + [ip],
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            text=True
+                        )
+
+                        current_xml = ""
+                        while True:
+                            output = detailed_process.stdout.read(1)
+                            if output == '' and detailed_process.poll() is not None:
+                                break
+                            if output:
+                                current_xml += output
+                                if "</host>" in current_xml:
+                                    try:
+                                        host_end = current_xml.find("</host>") + 7
+                                        host_xml = current_xml[:host_end]
+                                        root = ET.fromstring(host_xml)
+                                        device = self._parse_host(root)
                                         
-                            except Exception as e:
-                                print(f"[ERROR] Error escaneando {device.ip_address}: {str(e)}")
-                                device.last_scan_error = str(e)
-                                device.risk_score = 0.0
-                                device.risk_level = "Error"
-                                devices.append(device)
-                                if on_device_found:
-                                    on_device_found(device)
-                                    
-                    except Exception as e:
-                        print(f"[ERROR] Error procesando host XML: {str(e)}")
-                    finally:
-                        current_xml = current_xml[current_xml.find("</host>") + 7:]
-            
-            # Esperar a que termine el proceso inicial
-            process.wait()
-            
+                                        if device and not device_found:
+                                            devices.append(device)
+                                            if on_device_found:
+                                                on_device_found(device)
+                                    except Exception as e:
+                                        print(f"[ERROR] Error procesando {ip} sin privilegios: {str(e)}")
+                                    finally:
+                                        current_xml = current_xml[host_end:]
+
+                        detailed_process.wait()
+
+                except Exception as e:
+                    print(f"[ERROR] Error en escaneo detallado de {ip}: {str(e)}")
+
             if not devices:
                 print("\n[WARNING] No se encontraron dispositivos en la red")
             else:
-                print(f"\n[INFO] Escaneo completado. Se encontraron {len(devices)} dispositivos")
+                print(f"\n[SUCCESS] Escaneo completado. Se encontraron {len(devices)} dispositivos")
                 
             return devices
             
         except Exception as e:
             print(f"[ERROR] Error durante el escaneo: {str(e)}")
             return []
+
+    def _parse_host(self, host):
+        """Parsea un host desde su XML."""
+        try:
+            # Obtener dirección IP
+            address = host.find(".//address[@addrtype='ipv4']")
+            if address is None:
+                return None
+            
+            ip_address = address.get('addr')
+            print(f"[INFO] Parseando host {ip_address}")
+            
+            # Crear dispositivo
+            device = Device(ip_address)
+            device.last_scan_timestamp = int(time.time())
+            device.last_scan_success = True
+            
+            # Obtener hostname
+            hostnames = host.findall(".//hostname")
+            if hostnames:
+                device.hostname = hostnames[0].get('name')
+            
+            # Obtener MAC y vendor
+            mac = host.find(".//address[@addrtype='mac']")
+            if mac is not None:
+                device.mac_address = mac.get('addr')
+                device.vendor = mac.get('vendor', '')
+                print(f"[DEBUG] MAC encontrado: {device.mac_address}, Vendor: {device.vendor}")
+            
+            # Obtener información del OS
+            os_info = {}
+            os_matches = host.findall(".//osmatch")
+            if os_matches:
+                best_match = os_matches[0]
+                os_info['name'] = best_match.get('name', '')
+                os_info['accuracy'] = best_match.get('accuracy', '')
+                
+                os_classes = best_match.findall(".//osclass")
+                if os_classes:
+                    best_class = os_classes[0]
+                    device.os_type = best_class.get('type', '')
+                    device.os_vendor = best_class.get('vendor', '')
+                    device.os_family = best_class.get('osfamily', '')
+                    device.os_gen = best_class.get('osgen', '')
+            
+            device.os_info = os_info
+            
+            # Parsear puertos y servicios
+            ports = host.findall(".//port")
+            tcp_ports = []
+            udp_ports = []
+            
+            for port in ports:
+                port_info = {}
+                port_info['number'] = int(port.get('portid'))
+                port_info['protocol'] = port.get('protocol')
+                
+                state = port.find('state')
+                if state is not None:
+                    port_info['state'] = state.get('state')
+                    if state.get('state') != 'open':
+                        continue
+                
+                service = port.find('service')
+                if service is not None:
+                    port_info['name'] = service.get('name', '')
+                    port_info['product'] = service.get('product', '')
+                    port_info['version'] = service.get('version', '')
+                    port_info['extrainfo'] = service.get('extrainfo', '')
+                    
+                    # Obtener scripts NSE
+                    scripts = port.findall('script')
+                    if scripts:
+                        script_output = {}
+                        for script in scripts:
+                            script_output[script.get('id')] = script.get('output')
+                        port_info['scripts'] = script_output
+                
+                if port_info['protocol'] == 'tcp':
+                    tcp_ports.append(port_info)
+                else:
+                    udp_ports.append(port_info)
+            
+            device.tcp_ports = tcp_ports
+            device.udp_ports = udp_ports
+            device.open_ports = json.dumps({
+                'tcp': [p['number'] for p in tcp_ports],
+                'udp': [p['number'] for p in udp_ports]
+            })
+            
+            # Calcular nivel de riesgo basado en puertos abiertos
+            risk_score = 0
+            high_risk_ports = {21, 22, 23, 445, 3389}  # FTP, SSH, Telnet, SMB, RDP
+            medium_risk_ports = {80, 443, 8080, 8443}  # HTTP/HTTPS
+            
+            for port in tcp_ports:
+                port_num = port['number']
+                if port_num in high_risk_ports:
+                    risk_score += 2
+                elif port_num in medium_risk_ports:
+                    risk_score += 1
+                    
+            if risk_score > 4:
+                device.risk_level = "Alto"
+            elif risk_score > 2:
+                device.risk_level = "Medio"
+            else:
+                device.risk_level = "Bajo"
+            
+            return device
+            
+        except Exception as e:
+            print(f"[ERROR] Error parseando host: {str(e)}")
+            return None
 
     def _parse_single_host(self, host_xml):
         """Parsea un único host desde su XML."""
@@ -227,58 +472,32 @@ class NmapScanner:
                 device.vendor = mac.get('vendor')
                 
             # OS Detection
-            os_match = root.find(".//osmatch")
-            if os_match is not None:
-                os_info = {
-                    'name': os_match.get('name', ''),
-                    'accuracy': os_match.get('accuracy', ''),
-                    'osclass': []
-                }
-                
-                for osclass in os_match.findall('.//osclass'):
-                    os_class_info = {
-                        'type': osclass.get('type', ''),
-                        'vendor': osclass.get('vendor', ''),
-                        'osfamily': osclass.get('osfamily', ''),
-                        'osgen': osclass.get('osgen', '')
-                    }
-                    os_info['osclass'].append(os_class_info)
-                    
+            os_info = root.find(".//osmatch")
+            if os_info is not None:
                 device.os_info = self.data_normalizer.normalize_os_info(os_info)
                 
             # Ports and Services
-            for port in root.findall(".//port"):
-                state = port.find('state')
-                if state is not None and state.get('state') == 'open':
-                    port_id = port.get('portid')
-                    protocol = port.get('protocol')
-                    
-                    service = port.find('service')
-                    if service is not None:
-                        service_info = {
-                            'port': port_id,
-                            'protocol': protocol,
-                            'name': service.get('name', ''),
-                            'product': service.get('product', ''),
-                            'version': service.get('version', ''),
-                            'extra_info': service.get('extrainfo', '')
-                        }
-                        device.services[port_id] = service_info
-                        
-                        # Actualizar flags de servicios específicos
-                        service_name = service.get('name', '').lower()
-                        if service_name in ['microsoft-ds', 'netbios-ssn'] or port_id in ['445', '139']:
-                            device.has_wmi_port = True
-                        elif service_name == 'ssh' and port_id == '22':
-                            device.has_ssh_port = True
-                        elif service_name == 'snmp' or port_id == '161':
-                            device.has_snmp_port = True
+            for port in root.findall(".//port[@state='open']"):
+                port_id = port.get('portid')
+                protocol = port.get('protocol')
                 
-            # Determinar tipo de dispositivo
+                service = port.find('service')
+                if service is not None:
+                    service_info = {
+                        'port': port_id,
+                        'protocol': protocol,
+                        'name': service.get('name', ''),
+                        'product': service.get('product', ''),
+                        'version': service.get('version', ''),
+                        'extra_info': service.get('extrainfo', '')
+                    }
+                    device.services[port_id] = service_info
+                    
+            # Determinar tipo de dispositivo basado en puertos y OS
             device.determine_device_type()
             
             return device
-            
+
         except ET.ParseError as e:
             print(f"[ERROR] Error parseando XML del host: {e}")
             return None

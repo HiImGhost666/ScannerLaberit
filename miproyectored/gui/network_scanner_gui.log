@@ -232,3 +232,159 @@ TypeError: NmapScanner.scan() takes 2 positional arguments but 3 were given
 2025-05-27 13:52:37,281 - miproyectored.gui.app_gui - INFO - Escaneo Nmap completado. Encontrados 4 dispositivos.
 2025-05-27 13:52:37,304 - miproyectored.gui.app_gui - INFO - Guardando 4 dispositivos en la base de datos.
 2025-05-27 13:52:37,304 - miproyectored.gui.app_gui - ERROR - Error inesperado al guardar en la base de datos: NetworkReport.__init__() got an unexpected keyword argument 'target'
+2025-05-27 14:36:25,178 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 14:36:25,266 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 14:40:54,158 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-27 14:48:26,791 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-27 14:48:26,906 - miproyectored.gui.app_gui - ERROR - Error al inicializar la interfaz gráfica: '_tkinter.tkapp' object has no attribute 'results_table_frame'
+Traceback (most recent call last):
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 111, in __init__
+    self._create_widgets()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 271, in _create_widgets
+    self._create_results_tree()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 277, in _create_results_tree
+    self.results_tree = ttk.Treeview(self.results_table_frame, columns=columns, show='headings')
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\lmarten\AppData\Local\Programs\Python\Python313\Lib\tkinter\__init__.py", line 2546, in __getattr__
+    return getattr(self.tk, attr)
+AttributeError: '_tkinter.tkapp' object has no attribute 'results_table_frame'
+2025-05-27 14:51:02,696 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 14:51:02,739 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 14:51:17,873 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-27 14:51:23,836 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-27 14:51:23,900 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-27 14:51:34,452 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 08:33:34,583 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-28 08:33:34,665 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 08:33:42,175 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 08:33:59,345 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-28 08:33:59,400 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 08:34:02,563 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 08:35:14,934 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-28 08:35:14,974 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 08:35:32,129 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 09:03:55,176 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 09:03:55,260 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 09:13:05,751 - miproyectored.gui.app_gui - INFO - Escaneo Nmap completado. Encontrados 3 dispositivos.
+2025-05-28 09:13:05,771 - miproyectored.gui.app_gui - INFO - Guardando 3 dispositivos en la base de datos.
+2025-05-28 09:13:05,772 - miproyectored.gui.app_gui - ERROR - Error inesperado al guardar en la base de datos: NetworkReport.__init__() got an unexpected keyword argument 'target'
+2025-05-28 09:21:44,223 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-28 09:21:44,406 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 09:26:58,028 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-28 09:26:58,115 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 09:27:07,559 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 09:27:11,623 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-28 09:27:11,707 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 09:27:17,638 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 09:27:41,644 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 09:27:41,726 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 09:27:49,060 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 09:27:54,971 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 09:27:55,218 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 09:39:24,510 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 09:39:31,371 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 09:39:31,511 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 09:42:29,774 - miproyectored.gui.app_gui - INFO - Escaneo Nmap completado. Encontrados 2 dispositivos.
+2025-05-28 09:42:29,792 - miproyectored.gui.app_gui - INFO - Guardando 2 dispositivos en la base de datos.
+2025-05-28 09:42:29,793 - miproyectored.gui.app_gui - ERROR - Error inesperado al guardar en la base de datos: 'NetworkReport' object has no attribute 'target'
+2025-05-28 09:53:50,557 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 10:38:01,055 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-28 10:38:01,384 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 10:38:29,889 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-28 10:38:29,942 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 10:40:16,744 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-28 10:40:16,810 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 10:40:39,642 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 10:41:07,214 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 10:41:07,257 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 10:56:08,169 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 10:59:37,166 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-28 10:59:37,227 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 10:59:45,829 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 11:00:22,878 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 11:00:22,922 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 11:05:54,135 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-28 11:05:54,192 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 11:06:01,147 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 11:06:18,330 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 11:06:18,501 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 11:07:35,248 - miproyectored.gui.app_gui - INFO - Escaneo completado. Encontrados 3 dispositivos.
+2025-05-28 11:07:35,250 - miproyectored.gui.app_gui - ERROR - Error durante el escaneo: '_tkinter.tkapp' object has no attribute '_start_automatic_detailed_scans'
+Traceback (most recent call last):
+  File "C:\Users\lmarten\Desktop\ProyectoAlan\ScannerLaberit\miproyectored\gui\app_gui.py", line 447, in _perform_nmap_scan_thread
+    self._start_automatic_detailed_scans()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\lmarten\AppData\Local\Programs\Python\Python313\Lib\tkinter\__init__.py", line 2546, in __getattr__
+    return getattr(self.tk, attr)
+AttributeError: '_tkinter.tkapp' object has no attribute '_start_automatic_detailed_scans'
+2025-05-28 11:09:49,407 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 11:13:12,756 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-28 11:13:12,843 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 11:13:22,246 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 11:13:34,812 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 11:13:34,949 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 11:14:57,905 - miproyectored.gui.app_gui - INFO - Escaneo completado. Encontrados 2 dispositivos.
+2025-05-28 11:14:57,914 - miproyectored.gui.app_gui - INFO - Guardando 2 dispositivos en la base de datos.
+2025-05-28 11:14:57,914 - miproyectored.gui.app_gui - ERROR - Error inesperado al guardar en la base de datos: 'NetworkReport' object has no attribute 'target'
+2025-05-28 11:15:09,884 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 11:16:13,637 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 11:16:13,707 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 11:17:25,347 - miproyectored.gui.app_gui - INFO - Escaneo completado. Encontrados 3 dispositivos.
+2025-05-28 11:17:25,361 - miproyectored.gui.app_gui - INFO - Guardando 3 dispositivos en la base de datos.
+2025-05-28 11:17:25,361 - miproyectored.gui.app_gui - ERROR - Error inesperado al guardar en la base de datos: 'NetworkReport' object has no attribute 'target'
+2025-05-28 11:17:37,643 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 11:21:29,875 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 11:21:29,972 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 11:22:44,944 - miproyectored.gui.app_gui - INFO - Escaneo completado. Encontrados 3 dispositivos.
+2025-05-28 11:22:44,953 - miproyectored.gui.app_gui - INFO - Guardando 3 dispositivos en la base de datos.
+2025-05-28 11:22:44,953 - miproyectored.gui.app_gui - ERROR - Error inesperado al guardar en la base de datos: NetworkReport.__init__() got an unexpected keyword argument 'scanned_network_target'
+2025-05-28 11:23:27,114 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 11:27:18,224 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 11:27:18,332 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 11:28:36,833 - miproyectored.gui.app_gui - INFO - Escaneo completado. Encontrados 3 dispositivos.
+2025-05-28 11:28:36,841 - miproyectored.gui.app_gui - INFO - Guardando 3 dispositivos en la base de datos.
+2025-05-28 11:28:36,842 - miproyectored.gui.app_gui - ERROR - Error inesperado al guardar en la base de datos: 'InventoryManager' object has no attribute 'add_network_report'
+2025-05-28 11:29:21,658 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 11:30:22,281 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 11:30:22,330 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 11:30:41,105 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 11:37:58,063 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-28 11:37:58,150 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 11:38:08,648 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 11:38:41,097 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-28 11:38:41,360 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 11:38:54,779 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 11:39:31,450 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 11:39:31,533 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 11:40:50,772 - miproyectored.gui.app_gui - INFO - Escaneo completado. Encontrados 3 dispositivos.
+2025-05-28 11:40:50,780 - miproyectored.gui.app_gui - INFO - Guardando 3 dispositivos en la base de datos.
+2025-05-28 11:40:50,780 - miproyectored.gui.app_gui - ERROR - Error inesperado al guardar en la base de datos: 'NetworkReport' object has no attribute 'target'
+2025-05-28 11:44:40,922 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-28 11:44:40,991 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 11:44:45,932 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 11:45:00,686 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 11:45:00,755 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 11:45:08,252 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 11:45:08,292 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 11:46:29,906 - miproyectored.gui.app_gui - INFO - Escaneo completado. Encontrados 3 dispositivos.
+2025-05-28 11:46:29,912 - miproyectored.gui.app_gui - INFO - Guardando 3 dispositivos en la base de datos.
+2025-05-28 11:46:29,912 - miproyectored.gui.app_gui - ERROR - Error inesperado al guardar en la base de datos: 'NetworkReport' object has no attribute 'timestamp'
+2025-05-28 11:51:58,780 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-28 11:51:59,004 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 11:52:03,397 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 11:52:24,715 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 11:52:24,886 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 11:53:41,043 - miproyectored.gui.app_gui - INFO - Escaneo completado. Encontrados 3 dispositivos.
+2025-05-28 11:54:20,525 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 11:57:16,174 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 11:57:16,246 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 11:58:30,075 - miproyectored.gui.app_gui - INFO - Escaneo completado. Encontrados 3 dispositivos.
+2025-05-28 12:06:06,200 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 12:06:07,207 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 12:07:32,465 - miproyectored.gui.app_gui - INFO - Escaneo completado. Encontrados 3 dispositivos.
+2025-05-28 12:12:55,772 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 12:12:55,833 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 12:14:09,612 - miproyectored.gui.app_gui - INFO - Escaneo completado. Encontrados 3 dispositivos.
+2025-05-28 12:15:16,565 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.

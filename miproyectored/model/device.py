@@ -10,16 +10,17 @@ from miproyectored.scanner.snmp_client import SNMPClient  # Nueva importación
 
 class Device:
     def __init__(self, ip_address: str, hostname: Optional[str] = None):
+        """Inicializa un nuevo dispositivo."""
         self.id: Optional[int] = None  # Para la base de datos
         self.ip_address: str = ip_address
-        self.hostname: str = hostname if hostname else ip_address
+        self.hostname: str = hostname or ip_address
         
         self.type: str = "unknown"  # Ej: "windows", "linux", "network_device", "unknown"
         self.mac_address: Optional[str] = None # MAC address principal
         self.vendor: Optional[str] = None # Fabricante basado en MAC
         
         # Risk assessment attributes
-        self.risk_score: Optional[float] = None
+        self.risk_score: float = 0.0
         self.risk_level: str = "Desconocido"  # Bajo, Medio, Alto, Crítico, Desconocido
 
         # Estado del escaneo
@@ -31,8 +32,8 @@ class Device:
         self.os_info: Dict[str, Any] = {}
         self.hardware_info: Dict[str, Any] = {}
         self.network_info: Dict[str, Any] = {} # Podría incluir múltiples interfaces
-        self.services: Dict[int, str] = {} # Puertos abiertos y servicios
-        self.open_ports: list[int] = []
+        self.services: Dict[str, Dict] = {} # Puertos abiertos y servicios
+        self.open_ports: List[int] = []
 
         # Información específica de protocolos de escaneo profundo
         self.wmi_specific_info: Dict[str, Any] = {} # Datos crudos o adicionales de WMI
@@ -478,9 +479,6 @@ class Device:
         
         return result
 
-    def __repr__(self) -> str:
-        return f"<Device ip='{self.ip_address}' hostname='{self.hostname}' type='{self.type}' status='{self.status}'>"
-
     def get_os(self) -> str:
         """Devuelve el nombre del sistema operativo detectado, si está disponible."""
         if 'name' in self.os_info:
@@ -494,3 +492,25 @@ class Device:
         if 'distribution' in self.os_info:
             return self.os_info['distribution']
         return ""
+
+    def get_open_ports_str(self) -> str:
+        """Obtiene una lista formateada de puertos abiertos."""
+        if not self.services:
+            return "Sin puertos abiertos"
+        
+        port_info = []
+        for port, service in self.services.items():
+            service_str = f"{port}/{service.get('protocol', '?')}"
+            if service.get('name'):
+                service_str += f" ({service['name']}"
+                if service.get('product'):
+                    service_str += f" - {service['product']}"
+                if service.get('version'):
+                    service_str += f" {service['version']}"
+                service_str += ")"
+            port_info.append(service_str)
+            
+        return "\n".join(port_info)
+
+    def __repr__(self) -> str:
+        return f"<Device ip='{self.ip_address}' hostname='{self.hostname}' type='{self.type}' status='{self.status}'>"

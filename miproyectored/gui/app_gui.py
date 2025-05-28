@@ -74,12 +74,15 @@ class NetworkScannerGUI(ttk.Window):
             self.snmp_scanner = SnmpScanner()
             
             # Inicializar base de datos
-            self.db = InventoryManager()
+            self.inventory_manager = InventoryManager()
             
             # Variables para almacenar los resultados del escaneo
             self.scan_results: List[Device] = []
             self.filtered_results: List[Device] = []
             self.selected_device_ip: Optional[str] = None
+            
+            # Variable para el arrastre de columnas
+            self._drag_data = {"x": 0, "y": 0, "item": None}
             
             # Contadores para tipos de dispositivos
             self.windows_devices_count = 0
@@ -263,30 +266,68 @@ class NetworkScannerGUI(ttk.Window):
         results_table_frame = ttk.Frame(results_pane, padding=(10,10,10,0)) # Padding solo arriba y a los lados
         results_pane.add(results_table_frame, weight=2)
 
+        # Frame de búsqueda con estilo moderno
         search_frame = ttk.Frame(results_table_frame)
         search_frame.pack(fill=X, pady=(0,5))
-        ttk.Label(search_frame, text="Buscar:").pack(side=LEFT, padx=(0,5))
-        ttk.Entry(search_frame, textvariable=self.search_filter).pack(side=LEFT, fill=X, expand=True)
+        ttk.Label(search_frame, text="Buscar:", font=('', 10)).pack(side=LEFT, padx=(0,5))
+        search_entry = ttk.Entry(search_frame, textvariable=self.search_filter, font=('', 10))
+        search_entry.pack(side=LEFT, fill=X, expand=True)
 
-        cols = ("IP", "Hostname", "MAC", "Fabricante", "OS", "Riesgo")
-        self.results_tree = ttk.Treeview(results_table_frame, columns=cols, show='headings', bootstyle=PRIMARY)
-        for col in cols:
-            self.results_tree.heading(col, text=col)
-            self.results_tree.column(col, width=100, anchor=W) # Ajustar anchos según necesidad
-        self.results_tree.column("Hostname", width=150)
-        self.results_tree.column("Fabricante", width=150)
-        self.results_tree.column("OS", width=180)
+        # Configuración de la tabla de resultados
+        style = ttk.Style()
+        style.configure("Treeview", font=('', 10))  # Fuente base para la tabla
+        style.configure("Treeview.Heading", font=('', 10, 'bold'))  # Fuente para encabezados
+        
+        # Definición de columnas con nombres en español
+        columns = {
+            "ip": ("IP", 120),
+            "hostname": ("Hostname", 150),
+            "mac": ("MAC", 150),
+            "vendor": ("Fabricante", 150),
+            "os": ("Sistema Operativo", 200),
+            "ports": ("Puertos", 150)
+        }
+        
+        # Crear Treeview con aspecto de tabla
+        self.results_tree = ttk.Treeview(
+            results_table_frame,
+            columns=list(columns.keys()),
+            show='headings',  # Solo mostrar los encabezados, sin la columna de árbol
+            style="Treeview",
+            height=20  # Altura aproximada en filas
+        )
+        
+        # Configurar cada columna
+        for col_id, (header, width) in columns.items():
+            self.results_tree.heading(col_id, text=header, anchor=W)
+            self.results_tree.column(col_id, width=width, stretch=True, anchor=W)
+            
+            # Añadir ordenamiento al hacer clic en el encabezado
+            self.results_tree.heading(
+                col_id,
+                text=header,
+                command=lambda _col=col_id: self._treeview_sort_column(_col, False)
+            )
 
-        # Scrollbars para Treeview
+        # Configurar selección y estilo de la tabla
+        self.results_tree.tag_configure('oddrow', background='#f0f0f0')  # Filas alternas
+        self.results_tree.tag_configure('evenrow', background='#ffffff')
+        
+        # Scrollbars con estilo moderno
         tree_ysb = ttk.Scrollbar(results_table_frame, orient=VERTICAL, command=self.results_tree.yview)
         tree_xsb = ttk.Scrollbar(results_table_frame, orient=HORIZONTAL, command=self.results_tree.xview)
         self.results_tree.configure(yscroll=tree_ysb.set, xscroll=tree_xsb.set)
         
+        # Empaquetar todo con el layout correcto
         tree_ysb.pack(side=RIGHT, fill=Y)
         tree_xsb.pack(side=BOTTOM, fill=X)
         self.results_tree.pack(fill=BOTH, expand=True)
         
+        # Eventos
         self.results_tree.bind("<<TreeviewSelect>>", self._on_device_select)
+        self.results_tree.bind('<Button-1>', self._on_click)
+        self.results_tree.bind('<B1-Motion>', self._on_drag)
+        self.results_tree.bind('<ButtonRelease-1>', self._on_release)
 
         # Frame para detalles del dispositivo
         details_frame = ttk.Labelframe(results_pane, text="Detalles del Dispositivo Seleccionado", padding=10)
@@ -351,36 +392,66 @@ class NetworkScannerGUI(ttk.Window):
     def _perform_nmap_scan_thread(self, target: str):
         """Lógica de escaneo Nmap que se ejecuta en el hilo."""
         try:
-            def on_device_found(device: Device):
-                """Callback cuando se encuentra un dispositivo"""
-                self.scan_results.append(device)
-                self.after(0, self._populate_results_tree)  # Actualizar GUI
-                
-            # Realizar el escaneo Nmap
             self.scan_results = []
-            devices = self.nmap_scanner.scan(target, on_device_found)
             
-            if not devices:
+            # 1. Escaneo rápido inicial para encontrar hosts activos
+            self.after(0, lambda: self._update_scan_ui(True, "Buscando dispositivos activos..."))
+            active_ips = self.nmap_scanner.quick_scan(target)
+            
+            if not active_ips:
                 self.after(0, lambda: messagebox.showwarning(
                     "Escaneo Completado",
-                    "No se encontraron dispositivos en la red especificada.",
+                    "No se encontraron dispositivos activos en la red especificada.",
                     parent=self
                 ))
                 self.after(0, lambda: self._update_scan_ui(False, "No se encontraron dispositivos."))
                 return
+                
+            total_ips = len(active_ips)
+            self.after(0, lambda: self._update_scan_ui(True, f"Encontrados {total_ips} dispositivos. Iniciando escaneo detallado..."))
             
-            # Contar tipos de dispositivos
-            self._count_device_types()
-            logger.info(f"Escaneo Nmap completado. Encontrados {len(devices)} dispositivos.")
+            # 2. Escaneo detallado en paralelo
+            from concurrent.futures import ThreadPoolExecutor, as_completed
+            with ThreadPoolExecutor(max_workers=10) as executor:
+                # Iniciar todos los escaneos
+                future_to_ip = {executor.submit(self.nmap_scanner.detailed_scan, ip): ip 
+                              for ip in active_ips}
+                
+                # Procesar resultados conforme van llegando
+                completed = 0
+                for future in as_completed(future_to_ip):
+                    ip = future_to_ip[future]
+                    completed += 1
+                    
+                    try:
+                        device = future.result()
+                        if device:
+                            self.scan_results.append(device)
+                            # Actualizar la UI con el nuevo dispositivo
+                            self.after(0, lambda d=device: self.on_device_found(d))
+                    except Exception as e:
+                        logger.error(f"Error escaneando {ip}: {e}")
+                    
+                    # Actualizar progreso
+                    progress = (completed / total_ips) * 100
+                    self.after(0, lambda msg=f"Escaneando... {completed}/{total_ips} ({progress:.1f}%)": 
+                             self._update_scan_ui(True, msg))
             
-            # Si el escaneo automático está habilitado, iniciar escaneos detallados
-            if self.auto_scan_enabled.get():
-                self._start_automatic_detailed_scans()
+            # 3. Finalizar y actualizar UI
+            if self.scan_results:
+                self._count_device_types()
+                logger.info(f"Escaneo completado. Encontrados {len(self.scan_results)} dispositivos.")
+                
+                # Si el escaneo automático está habilitado, iniciar escaneos detallados
+                if self.auto_scan_enabled.get():
+                    self._start_automatic_detailed_scans()
+                else:
+                    self.after(0, lambda: self._update_scan_ui(False, "Escaneo completado."))
             else:
-                self.after(0, lambda: self._update_scan_ui(False, "Escaneo Nmap completado."))
-            
+                self.after(0, lambda: self._update_scan_ui(False, "No se encontraron dispositivos."))
+                
         except Exception as e:
-            logger.error(f"Error durante el escaneo Nmap: {e}", exc_info=True)
+            logger.error(f"Error durante el escaneo: {e}", exc_info=True)
             self.after(0, lambda: messagebox.showerror(
                 "Error de Escaneo",
                 f"Ocurrió un error durante el escaneo: {e}",
@@ -543,7 +614,7 @@ class NetworkScannerGUI(ttk.Window):
                         logger.info(f"Iniciando escaneo WMI para {device.ip_address}")
                         wmi_data = self.wmi_scanner.scan_device(device, wmi_creds)
                         if wmi_data:
-                            device.wmi_details = wmi_data # Asumiendo que Device tiene este atributo
+                            device.wmi_specific_info = wmi_data # Asumiendo que Device tiene este atributo
                             logger.info(f"WMI data obtenida para {device.ip_address}")
                         else:
                             logger.warning(f"No se obtuvo data WMI para {device.ip_address}")
@@ -556,7 +627,7 @@ class NetworkScannerGUI(ttk.Window):
                         logger.info(f"Iniciando escaneo SSH para {device.ip_address}")
                         ssh_data = self.ssh_scanner.scan_device(device, ssh_creds)
                         if ssh_data:
-                            device.ssh_details = ssh_data # Asumiendo que Device tiene este atributo
+                            device.ssh_specific_info = ssh_data # Asumiendo que Device tiene este atributo
                             logger.info(f"SSH data obtenida para {device.ip_address}")
                         else:
                             logger.warning(f"No se obtuvo data SSH para {device.ip_address}")
@@ -569,7 +640,7 @@ class NetworkScannerGUI(ttk.Window):
                         logger.info(f"Iniciando escaneo SNMP para {device.ip_address}")
                         snmp_data = self.snmp_scanner.scan_device(device, snmp_creds) # Pasar creds con comunidad
                         if snmp_data:
-                            device.snmp_details = snmp_data # Asumiendo que Device tiene este atributo
+                            device.snmp_specific_info = snmp_data # Asumiendo que Device tiene este atributo
                             logger.info(f"SNMP data obtenida para {device.ip_address}")
                         else:
                             logger.warning(f"No se obtuvo data SNMP para {device.ip_address}")
@@ -598,61 +669,20 @@ class NetworkScannerGUI(ttk.Window):
         if not self.scan_results:
             return
             
-        # Agrupar dispositivos por tipo
-        devices_by_type = {}
-        for device in self.scan_results:
-            device_type = device.type or "Unknown"
-            if device_type not in devices_by_type:
-                devices_by_type[device_type] = []
-            devices_by_type[device_type].append(device)
+        # Insertar dispositivos en el Treeview
+        for i, device in enumerate(self.scan_results):
+            # Formatear puertos
+            ports_str = ", ".join(sorted(device.services.keys(), key=lambda x: int(x))) if device.services else "N/A"
             
-        # Insertar dispositivos agrupados
-        for device_type, devices in devices_by_type.items():
-            # Crear nodo padre para el tipo
-            type_node = self.results_tree.insert("", "end", text=device_type, values=("", "", "", ""))
-            
-            # Insertar dispositivos de este tipo
-            for device in devices:
-                # Determinar estado del dispositivo
-                status = "✓" if device.last_scan_success else "✗" if device.last_scan_error else ""
-                
-                # Formatear puertos como string
-                ports = ", ".join(sorted(device.services.keys(), key=lambda x: int(x)))
-                
-                # Insertar dispositivo
-                device_node = self.results_tree.insert(
-                    type_node, 
-                    "end",
-                    text=device.ip_address,
-                    values=(
-                        device.hostname or "N/A",
-                        device.vendor or "N/A",
-                        ports or "N/A",
-                        status
-                    )
-                )
-                
-                # Añadir detalles como sub-nodos
-                if device.os_info:
-                    os_info = device.os_info.get('name', 'Unknown OS')
-                    self.results_tree.insert(device_node, "end", text="OS", values=(os_info, "", "", ""))
-                    
-                # Mostrar servicios detectados
-                if device.services:
-                    services_node = self.results_tree.insert(device_node, "end", text="Services", values=("", "", "", ""))
-                    for port, service in device.services.items():
-                        service_info = f"{service['name']} {service['product']} {service['version']}".strip()
-                        self.results_tree.insert(
-                            services_node, 
-                            "end", 
-                            text=f"Port {port}", 
-                            values=(service_info, "", "", "")
-                        )
-                        
-        # Expandir todos los nodos de tipo
-        for item in self.results_tree.get_children():
-            self.results_tree.item(item, open=True)
-
+            values = (
+                device.ip_address,
+                device.hostname or "N/A",
+                device.mac_address or "N/A",
+                device.vendor or "N/A",
+                device.get_os() or "N/A",
+                ports_str
+            )
+            self.results_tree.insert('', 'end', values=values, tags=('oddrow' if i % 2 else 'evenrow'))
 
     def _apply_filter(self, *args):
         """Filtra los resultados del Treeview según el texto de búsqueda."""
@@ -720,57 +750,75 @@ class NetworkScannerGUI(ttk.Window):
             self._clear_details_view()
             return
 
-        # General
-        general_info = f"IP: {device.ip_address}\n"
-        general_info += f"Hostname: {device.hostname or 'N/A'}\n"
-        general_info += f"MAC: {device.mac_address or 'N/A'}\n"
-        general_info += f"Fabricante: {device.vendor or 'N/A'}\n"
-        general_info += f"Sistema Operativo (Nmap): {device.get_os() or 'N/A'}\n"
-        general_info += f"Estado: {device.status or 'N/A'}\n"
-        if device.risk_score is not None:
-            general_info += f"Puntuación de Riesgo: {device.risk_score:.1f} ({device.risk_level})\n"
-        else:
-            general_info += f"Puntuación de Riesgo: No disponible\n"
-        if device.vulnerabilities:
-            general_info += "\nVulnerabilidades (Nmap):\n"
-            for vul in device.vulnerabilities: # Asumiendo que vulnerabilidades es una lista de strings o dicts
-                general_info += f"  - {vul}\n"
+        # Pestaña General
+        general_info = f"""Información General:
+  - IP: {device.ip_address}
+  - Hostname: {device.hostname or 'N/A'}
+  - MAC: {device.mac_address or 'N/A'}
+  - Vendor: {device.vendor or 'N/A'}
+  - OS: {device.os_info.get('name', 'N/A')}
+  - Tipo: {device.type}
+  - Último escaneo: {device.last_scan or 'N/A'}
+  - Estado: {device.status}
+"""
+        if device.scan_error:
+            general_info += f"\nError en el último escaneo: {device.scan_error}"
+            
         self._update_text_widget(self.general_details_text, general_info)
 
-        # Puertos y Servicios
-        ports_info = "Puertos Abiertos (TCP):\n"
-        if device.get_open_ports().get('tcp'):
-            for port, service_info in device.get_open_ports()['tcp'].items():
-                ports_info += f"  - Puerto {port}: {service_info.get('name', 'N/A')} ({service_info.get('product', '')} {service_info.get('version', '')})\n"
+        # Pestaña Puertos/Servicios
+        services_info = "Puertos y Servicios:\n"
+        if device.services:
+            for port, service_info in device.services.items():
+                protocol = service_info.get('protocol', 'unknown')
+                name = service_info.get('name', 'unknown')
+                version = service_info.get('version', '')
+                state = service_info.get('state', 'unknown')
+                
+                service_str = f"  - {port}/{protocol} ({state}): {name}"
+                if version:
+                    service_str += f" - {version}"
+                services_info += service_str + "\n"
         else:
-            ports_info += "  No se detectaron puertos TCP abiertos.\n"
-        
-        ports_info += "\nPuertos Abiertos (UDP):\n"
-        if device.get_open_ports().get('udp'):
-            for port, service_info in device.get_open_ports()['udp'].items():
-                 ports_info += f"  - Puerto {port}: {service_info.get('name', 'N/A')} ({service_info.get('product', '')} {service_info.get('version', '')})\n"
+            services_info += "  No se encontraron puertos abiertos.\n"
+        self._update_text_widget(self.ports_services_text, services_info)
+
+        # Pestaña Hardware
+        hardware_info = "Información de Hardware:\n"
+        if device.hardware_info:
+            for key, value in device.hardware_info.items():
+                hardware_info += f"  - {key.replace('_', ' ').capitalize()}: {value}\n"
         else:
-            ports_info += "  No se detectaron puertos UDP abiertos.\n"
-        self._update_text_widget(self.ports_services_text, ports_info)
+            hardware_info += "  No disponible.\n"
+        self._update_text_widget(self.wmi_details_text, hardware_info)
+
+        # Pestaña Red
+        network_info = "Información de Red:\n"
+        if device.network_info:
+            for key, value in device.network_info.items():
+                network_info += f"  - {key.replace('_', ' ').capitalize()}: {value}\n"
+        else:
+            network_info += "  No disponible.\n"
+        self._update_text_widget(self.snmp_details_text, network_info)
 
         # Pestaña Info SSH
         ssh_info_str = "Información SSH:\n"
-        if device.ssh_info and device.ssh_info.get("Estado") != "Desconocido" and not device.ssh_info.get("error"):
-            for key, value in device.ssh_info.items():
+        if device.ssh_specific_info and device.ssh_specific_info.get("Estado") != "Desconocido" and not device.ssh_specific_info.get("error"):
+            for key, value in device.ssh_specific_info.items():
                 ssh_info_str += f"  - {key.replace('_', ' ').capitalize()}: {value}\n"
-        elif device.ssh_info and device.ssh_info.get("error"):
-             ssh_info_str += f"  Error: {device.ssh_info['error']}\n"
+        elif device.ssh_specific_info and device.ssh_specific_info.get("error"):
+             ssh_info_str += f"  Error: {device.ssh_specific_info['error']}\n"
         else:
             ssh_info_str += "  No disponible o no escaneado.\n"
         self._update_text_widget(self.ssh_details_text, ssh_info_str)
 
         # Pestaña Info WMI
         wmi_info_str = "Información WMI:\n"
-        if device.wmi_info and device.wmi_info.get("Estado") != "Desconocido" and not device.wmi_info.get("error"):
-            for key, value in device.wmi_info.items():
+        if device.wmi_specific_info and device.wmi_specific_info.get("Estado") != "Desconocido" and not device.wmi_specific_info.get("error"):
+            for key, value in device.wmi_specific_info.items():
                 wmi_info_str += f"  - {key.replace('_', ' ').capitalize()}: {value}\n"
-        elif device.wmi_info and device.wmi_info.get("error"):
-            wmi_info_str += f"  Error: {device.wmi_info['error']}\n"
+        elif device.wmi_specific_info and device.wmi_specific_info.get("error"):
+            wmi_info_str += f"  Error: {device.wmi_specific_info['error']}\n"
         else:
             wmi_info_str += "  No disponible o no escaneado.\n"
         self._update_text_widget(self.wmi_details_text, wmi_info_str)
@@ -778,36 +826,35 @@ class NetworkScannerGUI(ttk.Window):
 
     def _save_scan_to_db(self):
         """Guarda los resultados del escaneo en la base de datos."""
-        if not self.scan_results:
-            return
-            
         try:
-            logger.info(f"Guardando {len(self.scan_results)} dispositivos en la base de datos.")
+            if not self.scan_results:
+                logging.warning("No hay dispositivos para guardar en la base de datos.")
+                return
+
+            logging.info(f"Guardando {len(self.scan_results)} dispositivos en la base de datos.")
             
-            # Crear un nuevo reporte
+            # Crear reporte de red
             report = NetworkReport(
                 target=self.network_range.get(),
                 timestamp=int(time.time()),
                 engine_info="Nmap Scanner"
             )
             
-            # Guardar el reporte primero
-            report_id = self.db.save_report(report)
-            
-            if report_id <= 0:
-                raise Exception("Error al guardar el reporte")
-            
-            # Ahora guardar cada dispositivo asociado al reporte
+            # Añadir dispositivos al reporte
             for device in self.scan_results:
-                device.report_id = report_id  # Asociar el dispositivo al reporte
-                self.db.add_or_update_device(device)
-                
-            logger.info("Resultados del escaneo guardados en la base de datos.")
+                report.add_device(device)
+            
+            # Guardar en la base de datos
+            self.inventory_manager.save_report(report)
+            logging.info("Reporte guardado exitosamente en la base de datos.")
             
         except Exception as e:
-            logger.error(f"Error inesperado al guardar en la base de datos: {e}")
-            messagebox.showerror("Error", f"Error al guardar en la base de datos: {e}")
-
+            logging.error(f"Error inesperado al guardar en la base de datos: {str(e)}")
+            logging.debug(f"Detalles del error:", exc_info=True)
+            messagebox.showerror(
+                "Error al Guardar", 
+                f"No se pudieron guardar los resultados en la base de datos:\n{str(e)}"
+            )
 
     def _export_data(self):
         """Exporta los datos del escaneo a un formato seleccionado por el usuario."""
@@ -847,9 +894,44 @@ class NetworkScannerGUI(ttk.Window):
         """Maneja el evento de cierre de la ventana."""
         if messagebox.askokcancel("Salir", "¿Está seguro de que desea salir?", parent=self):
             logger.info("Cerrando la aplicación.")
-            if self.db:
-                self.db.close() # Cerrar conexión a la base de datos
+            if self.inventory_manager:
+                self.inventory_manager.close() # Cerrar conexión a la base de datos
             self.destroy()
+
+    def _treeview_sort_column(self, col, reverse):
+        l = [(self.results_tree.set(k, col), k) for k in self.results_tree.get_children('')]
+        l.sort(key=lambda t: t[0], reverse=reverse)
+
+        for index, (val, k) in enumerate(l):
+            self.results_tree.move(k, '', index)
+
+        self.results_tree.heading(col, command=lambda _col=col: self._treeview_sort_column(_col, not reverse))
+
+    def _on_click(self, event):
+        self._drag_data["x"] = event.x
+        self._drag_data["y"] = event.y
+        self._drag_data["item"] = self.results_tree.identify_row(event.y)
+
+    def _on_drag(self, event):
+        dx = event.x - self._drag_data["x"]
+        dy = event.y - self._drag_data["y"]
+        self._drag_data["x"] = event.x
+        self._drag_data["y"] = event.y
+        item = self._drag_data["item"]
+        if item:
+            self.results_tree.move(item, '', self.results_tree.index(item) + dy // 20)
+
+    def _on_release(self, event):
+        self._drag_data["item"] = None
+
+    def on_device_found(self, device: Device):
+        """Callback cuando se encuentra un dispositivo"""
+        if device and device.ip_address:  # Asegurarse de que el dispositivo es válido
+            # Actualizar la tabla
+            self.after(0, self._populate_results_tree)
+            
+            # Actualizar la UI con el progreso
+            self.after(0, lambda: self._update_scan_ui(True, f"Dispositivo encontrado: {device.ip_address}"))
 
 if __name__ == '__main__':
     # Asegurarse que el directorio del proyecto está en sys.path para importaciones relativas

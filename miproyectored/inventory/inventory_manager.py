@@ -38,17 +38,17 @@ class InventoryManager:
                     ip_address TEXT NOT NULL,
                     hostname TEXT,
                     mac_address TEXT,
-                    manufacturer TEXT,
-                    os_details TEXT,
+                    vendor TEXT,
+                    os_info TEXT,
+                    os_type TEXT,
+                    os_vendor TEXT,
+                    os_family TEXT,
+                    os_gen TEXT,
                     risk_level TEXT,
-                    snmp_system_name TEXT,
-                    snmp_system_description TEXT,
-                    snmp_system_location TEXT,
-                    snmp_system_contact TEXT,
-                    snmp_system_uptime TEXT,
-                    snmp_interface_description TEXT,
-                    snmp_interface_speed TEXT,
-                    snmp_interface_status TEXT,
+                    last_scan_timestamp INTEGER,
+                    last_scan_success BOOLEAN,
+                    last_scan_error TEXT,
+                    open_ports TEXT,
                     FOREIGN KEY (report_id) REFERENCES ScanReports(report_id) ON DELETE CASCADE,
                     UNIQUE (report_id, ip_address)
                 )
@@ -60,8 +60,12 @@ class InventoryManager:
                     port_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     device_id INTEGER NOT NULL,
                     port_number INTEGER NOT NULL,
+                    protocol TEXT NOT NULL,
                     service_name TEXT,
-                    protocol TEXT DEFAULT 'tcp',
+                    service_product TEXT,
+                    service_version TEXT,
+                    service_extra_info TEXT,
+                    state TEXT NOT NULL,
                     FOREIGN KEY (device_id) REFERENCES Devices(device_id) ON DELETE CASCADE,
                     UNIQUE (device_id, port_number, protocol)
                 )
@@ -122,11 +126,11 @@ class InventoryManager:
         try:
             cursor = self.connection.cursor()
             
-            # Insertar el reporte
+            # Insertar el reporte usando scan_timestamp
             cursor.execute('''
                 INSERT INTO ScanReports (scan_target, scan_timestamp, scan_engine_info)
                 VALUES (?, ?, ?)
-            ''', (report.target, report.timestamp, report.engine_info))
+            ''', (report.target, report.scan_timestamp, report.scan_engine_info))
             
             report_id = cursor.lastrowid
             
@@ -139,26 +143,49 @@ class InventoryManager:
             
         except sqlite3.Error as e:
             print(f"Error al guardar reporte: {e}")
-            return -1
+            self.connection.rollback()
+            raise
 
     def _save_device(self, cursor, report_id: int, device: Device) -> int:
         """Guarda un dispositivo en la base de datos"""
         cursor.execute('''
             INSERT INTO Devices (
-                report_id, ip_address, hostname, mac_address, manufacturer,
-                os_details, risk_level
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                report_id, ip_address, hostname, mac_address, vendor,
+                os_info, os_type, os_vendor, os_family, os_gen, risk_level
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             report_id,
             device.ip_address,
             device.hostname,
             device.mac_address,
-            device.manufacturer,
-            json.dumps(device.os_info),
-            device.risk_level
+            device.vendor,
+            json.dumps(device.os_info) if hasattr(device, 'os_info') else None,
+            device.os_type if hasattr(device, 'os_type') else None,
+            device.os_vendor if hasattr(device, 'os_vendor') else None,
+            device.os_family if hasattr(device, 'os_family') else None,
+            device.os_gen if hasattr(device, 'os_gen') else None,
+            device.risk_level if hasattr(device, 'risk_level') else 'Unknown'
         ))
         
         device_id = cursor.lastrowid
+        
+        # Guardar puertos TCP
+        if hasattr(device, 'tcp_ports') and device.tcp_ports:
+            for port_number, service_info in device.tcp_ports.items():
+                self._save_device_port(cursor, device_id, {
+                    'number': port_number,
+                    'service': service_info.get('name', ''),
+                    'protocol': 'tcp'
+                })
+        
+        # Guardar puertos UDP
+        if hasattr(device, 'udp_ports') and device.udp_ports:
+            for port_number, service_info in device.udp_ports.items():
+                self._save_device_port(cursor, device_id, {
+                    'number': port_number,
+                    'service': service_info.get('name', ''),
+                    'protocol': 'udp'
+                })
         
         # Guardar datos WMI si existen
         if hasattr(device, 'wmi_specific_info') and device.wmi_specific_info:
@@ -171,10 +198,6 @@ class InventoryManager:
         # Guardar datos SNMP si existen
         if hasattr(device, 'snmp_info') and device.snmp_info:
             self._save_snmp_data(cursor, device_id, device.snmp_info)
-        
-        # Guardar puertos del dispositivo
-        for port in device.ports:
-            self._save_device_port(cursor, device_id, port)
             
         return device_id
 
@@ -182,9 +205,9 @@ class InventoryManager:
         """Guarda un puerto de dispositivo en la base de datos"""
         cursor.execute('''
             INSERT INTO DevicePorts (
-                device_id, port_number, service_name, protocol
+                device_id, port_number, protocol, service_name
             ) VALUES (?, ?, ?, ?)
-        ''', (device_id, port['number'], port['service'], port['protocol']))
+        ''', (device_id, port['number'], port['protocol'], port['service']))
         
         return cursor.lastrowid
 
@@ -234,15 +257,23 @@ class InventoryManager:
                     UPDATE Devices SET
                         hostname = ?,
                         mac_address = ?,
-                        manufacturer = ?,
-                        os_details = ?,
+                        vendor = ?,
+                        os_info = ?,
+                        os_type = ?,
+                        os_vendor = ?,
+                        os_family = ?,
+                        os_gen = ?,
                         risk_level = ?
                     WHERE device_id = ?
                 ''', (
                     device.hostname,
                     device.mac_address,
-                    device.manufacturer,
+                    device.vendor,
                     json.dumps(device.os_info) if device.os_info else None,
+                    device.os_type if hasattr(device, 'os_type') else None,
+                    device.os_vendor if hasattr(device, 'os_vendor') else None,
+                    device.os_family if hasattr(device, 'os_family') else None,
+                    device.os_gen if hasattr(device, 'os_gen') else None,
                     device.risk_level,
                     device_id
                 ))
@@ -253,15 +284,19 @@ class InventoryManager:
                 # Insertar nuevo dispositivo
                 cursor.execute('''
                     INSERT INTO Devices (
-                        ip_address, hostname, mac_address, manufacturer,
-                        os_details, risk_level
-                    ) VALUES (?, ?, ?, ?, ?, ?)
+                        ip_address, hostname, mac_address, vendor,
+                        os_info, os_type, os_vendor, os_family, os_gen, risk_level
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     device.ip_address,
                     device.hostname,
                     device.mac_address,
-                    device.manufacturer,
+                    device.vendor,
                     json.dumps(device.os_info) if device.os_info else None,
+                    device.os_type if hasattr(device, 'os_type') else None,
+                    device.os_vendor if hasattr(device, 'os_vendor') else None,
+                    device.os_family if hasattr(device, 'os_family') else None,
+                    device.os_gen if hasattr(device, 'os_gen') else None,
                     device.risk_level
                 ))
                 device_id = cursor.lastrowid
@@ -273,13 +308,13 @@ class InventoryManager:
                     for port_num, port_info in ports.items():
                         cursor.execute('''
                             INSERT INTO DevicePorts (
-                                device_id, port_number, service_name, protocol
+                                device_id, port_number, protocol, service_name
                             ) VALUES (?, ?, ?, ?)
                         ''', (
                             device_id,
                             port_num,
-                            port_info.get('name', ''),
-                            protocol
+                            protocol,
+                            port_info.get('name', '')
                         ))
             
             self.connection.commit()
