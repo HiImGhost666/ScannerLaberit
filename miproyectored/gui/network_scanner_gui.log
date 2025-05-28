@@ -388,3 +388,9 @@ AttributeError: '_tkinter.tkapp' object has no attribute '_start_automatic_detai
 2025-05-28 12:12:55,833 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
 2025-05-28 12:14:09,612 - miproyectored.gui.app_gui - INFO - Escaneo completado. Encontrados 3 dispositivos.
 2025-05-28 12:15:16,565 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
+2025-05-28 12:24:41,378 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.38.0/24
+2025-05-28 12:24:41,431 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 12:39:47,894 - miproyectored.gui.app_gui - INFO - Rango de red local detectado: 192.168.2.0/24
+2025-05-28 12:39:48,001 - miproyectored.gui.app_gui - INFO - Interfaz gráfica inicializada correctamente
+2025-05-28 12:41:07,198 - miproyectored.gui.app_gui - INFO - Escaneo completado. Encontrados 3 dispositivos.
+2025-05-28 12:42:33,682 - miproyectored.gui.app_gui - INFO - Cerrando la aplicación.
